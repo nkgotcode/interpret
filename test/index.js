@@ -58,6 +58,12 @@ var maxVersions = {};
 describe('interpret.extensions', function () {
   beforeEach(cleanup);
 
+  it('includes tsx as a TypeScript loader option', function (done) {
+    expect(extensions['.ts']).toContain('tsx/dist/cjs/index.cjs');
+    expect(extensions['.tsx']).toContain('tsx/dist/cjs/index.cjs');
+    done();
+  });
+
   var exts = Object.keys(extensions);
 
   var attempts = exts.reduce(function (attempts, ext) {
@@ -106,6 +112,8 @@ describe('interpret.extensions', function () {
     var module = attempt.module;
     var name = attempt.name;
     var fixture = attempt.fixture;
+    var fixturePath = path.join(__dirname, fixture);
+    var preparedFixture = name === 'tsx/dist/cjs/index.cjs' ? fixturePath : fixture;
     var fixtureDir = path.dirname(fixture);
     var idx = attempt.index;
 
@@ -146,7 +154,7 @@ describe('interpret.extensions', function () {
         shell.exec('npm install', { silent: true });
 
         try {
-          rechoir.prepare(extensions, fixture);
+          rechoir.prepare(extensions, preparedFixture);
         } catch (err) {
           console.error(err.failures);
           throw err;
@@ -181,7 +189,7 @@ describe('interpret.extensions', function () {
                 },
               },
             };
-            expect(require(fixture)).toEqual(expected);
+            expect(require(preparedFixture)).toEqual(expected);
             break;
 
           case '.mdx':
@@ -194,7 +202,7 @@ describe('interpret.extensions', function () {
                 },
               },
             };
-            var component = require(fixture);
+            var component = require(preparedFixture);
             // React internals :shrug:
             expect(component().type()).toEqual(expected);
             break;
@@ -206,7 +214,7 @@ describe('interpret.extensions', function () {
             expected.data.falseKey = false;
             expected.data.subKey = Object.create(null);
             expected.data.subKey.subProp = 1;
-            expect(require(fixture)).toEqual(expected);
+            expect(require(preparedFixture)).toEqual(expected);
             break;
 
           default:
@@ -219,7 +227,7 @@ describe('interpret.extensions', function () {
                 },
               },
             };
-            expect(require(fixture)).toEqual(expected);
+            expect(require(preparedFixture)).toEqual(expected);
         }
         done();
       }
